@@ -10,6 +10,9 @@
 # Google Gemini SDK - For evidence generation with Nano Banana
 google-genai>=1.0.0
 
+# Google ADK
+google-adk==1.21.0
+
 # Google Cloud BigQuery - For star catalog setup
 google-cloud-bigquery>=3.0.0
 
