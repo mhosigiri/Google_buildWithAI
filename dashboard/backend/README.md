@@ -8,29 +8,29 @@ Handles event management, participant registration, avatar storage, and location
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Backend Architecture                     │
+│                     Backend Architecture                    │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│   Cloud Run                                                  │
-│   ─────────                                                  │
+│                                                             │
+│   Cloud Run                                                 │
+│   ─────────                                                 │
 │   ┌─────────────────────────────────────────────────────┐   │
-│   │              FastAPI Application                     │   │
-│   │                                                      │   │
+│   │              FastAPI Application                    │   │
+│   │                                                     │   │
 │   │  /events/*          - Event management (public)     │   │
 │   │  /participants/*    - Participant registration      │   │
 │   │  /admin/*           - Admin (Firebase Auth)         │   │
 │   │  /config            - Client configuration          │   │
 │   └─────────────────────────────────────────────────────┘   │
-│              │                        │                      │
-│              ▼                        ▼                      │
-│   ┌─────────────────┐     ┌─────────────────────┐          │
-│   │    Firestore    │     │  Firebase Storage   │          │
-│   │                 │     │                     │          │
-│   │  • events       │     │  • avatars/         │          │
-│   │  • participants │     │    portraits, icons │          │
-│   │  • admins       │     │  • evidence/        │          │
-│   └─────────────────┘     └─────────────────────┘          │
-│                                                              │
+│              │                        │                     │
+│              ▼                        ▼                     │
+│   ┌─────────────────┐     ┌─────────────────────┐           │
+│   │    Firestore    │     │  Firebase Storage   │           │
+│   │                 │     │                     │           │
+│   │  • events       │     │  • avatars/         │           │
+│   │  • participants │     │    portraits, icons │           │
+│   │  • admins       │     │  • evidence/        │           │
+│   └─────────────────┘     └─────────────────────┘           │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
