@@ -6,18 +6,18 @@
  */
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMapStore, getLevelColor, getLevelName } from '@/lib/store'
+import { useMapStore, getLevelColor, getLevelName, getParticipantLevel } from '@/lib/store'
 
 export function ParticipantList() {
-  const { 
-    participants, 
-    showParticipantList, 
+  const {
+    participants,
+    showParticipantList,
     toggleParticipantList,
     setSelectedParticipant,
     selectedParticipant,
     currentUserId,
   } = useMapStore()
-  
+
   // Sort: current user first, then by registration time
   const sortedParticipants = [...participants].sort((a, b) => {
     if (a.participant_id === currentUserId) return -1
@@ -27,7 +27,7 @@ export function ParticipantList() {
     const bTime = b.registered_at ? new Date(b.registered_at).getTime() : 0
     return bTime - aTime
   })
-  
+
   return (
     <>
       {/* Toggle button */}
@@ -48,7 +48,7 @@ export function ParticipantList() {
           ▼
         </motion.span>
       </motion.button>
-      
+
       {/* List panel */}
       <AnimatePresence>
         {showParticipantList && (
@@ -70,9 +70,9 @@ export function ParticipantList() {
                   {sortedParticipants.map((participant, index) => {
                     const isCurrentUser = participant.participant_id === currentUserId
                     const isSelected = selectedParticipant?.participant_id === participant.participant_id
-                    const level = participant.location_confirmed ? 1 : 0
+                    const level = getParticipantLevel(participant)
                     const levelColor = getLevelColor(level)
-                    
+
                     return (
                       <motion.button
                         key={participant.participant_id}
@@ -83,31 +83,31 @@ export function ParticipantList() {
                         className={`
                           w-full flex items-center gap-3 p-2 rounded-lg text-left
                           transition-colors duration-200
-                          ${isSelected 
-                            ? 'bg-space-lavender/20' 
+                          ${isSelected
+                            ? 'bg-space-lavender/20'
                             : 'hover:bg-space-void-lighter/50'
                           }
                         `}
                       >
                         {/* Avatar */}
-                        <div 
+                        <div
                           className={`
                             w-9 h-9 rounded-lg overflow-hidden flex-shrink-0
                             border-2 transition-all
-                            ${isCurrentUser 
-                              ? 'border-space-orange shadow-glow-orange' 
+                            ${isCurrentUser
+                              ? 'border-space-orange shadow-glow-orange'
                               : 'border-transparent'
                             }
                           `}
                         >
                           {participant.icon_url ? (
-                            <img 
+                            <img
                               src={participant.icon_url}
                               alt={participant.username}
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div 
+                            <div
                               className="w-full h-full flex items-center justify-center text-sm font-bold text-space-void"
                               style={{ backgroundColor: levelColor }}
                             >
@@ -115,7 +115,7 @@ export function ParticipantList() {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
@@ -127,7 +127,7 @@ export function ParticipantList() {
                             )}
                           </div>
                           <div className="flex items-center gap-1">
-                            <span 
+                            <span
                               className="w-2 h-2 rounded-full"
                               style={{ backgroundColor: levelColor }}
                             />
@@ -136,11 +136,11 @@ export function ParticipantList() {
                             </span>
                           </div>
                         </div>
-                        
+
                         {/* Level indicator */}
-                        <div 
+                        <div
                           className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                          style={{ 
+                          style={{
                             backgroundColor: `${levelColor}30`,
                             color: levelColor,
                           }}
@@ -165,19 +165,19 @@ export function ParticipantList() {
  */
 export function EventStats() {
   const { event, participants } = useMapStore()
-  
+
   if (!event) return null
-  
+
   // Count participants by level (derived from location_confirmed)
   const levelCounts = participants.reduce((acc, p) => {
-    const level = p.location_confirmed ? 1 : 0
+    const level = getParticipantLevel(p)
     acc[level] = (acc[level] || 0) + 1
     return acc
   }, {} as Record<number, number>)
-  
+
   // For now, "completed" means location_confirmed = true
   const completedCount = levelCounts[1] || 0
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -195,10 +195,10 @@ export function EventStats() {
           <p className="text-space-lavender/50 text-xs">Explorers</p>
         </div>
       </div>
-      
+
       {/* Divider */}
       <div className="h-8 w-px bg-space-lavender/20" />
-      
+
       {/* Location confirmed */}
       <div className="flex items-center gap-2">
         <span className="text-space-orange text-lg">📍</span>
@@ -209,10 +209,10 @@ export function EventStats() {
           <p className="text-space-lavender/50 text-xs">Located</p>
         </div>
       </div>
-      
+
       {/* Divider */}
       <div className="h-8 w-px bg-space-lavender/20" />
-      
+
       {/* Capacity */}
       <div className="flex items-center gap-2">
         <div className="flex-1">
@@ -223,7 +223,7 @@ export function EventStats() {
             </span>
           </div>
           <div className="w-24 h-1.5 bg-space-void-lighter rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-space-mint to-space-lavender rounded-full"
               style={{ width: `${(participants.length / event.max_participants) * 100}%` }}
             />

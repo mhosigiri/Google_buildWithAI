@@ -6,16 +6,16 @@
  */
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMapStore, getLevelColor, getLevelName } from '@/lib/store'
+import { useMapStore, getLevelColor, getLevelName, getParticipantLevel, getCompletionPercentage, getLevelCompletionStatus } from '@/lib/store'
 
 export function ParticipantDetail() {
   const { selectedParticipant, setSelectedParticipant, currentUserId } = useMapStore()
-  
+
   const isCurrentUser = selectedParticipant?.participant_id === currentUserId
-  const level = selectedParticipant?.location_confirmed ? 1 : 0
+  const level = selectedParticipant ? getParticipantLevel(selectedParticipant) : 0
   const levelColor = selectedParticipant ? getLevelColor(level) : ''
   const levelName = selectedParticipant ? getLevelName(level) : ''
-  
+
   return (
     <AnimatePresence>
       {selectedParticipant && (
@@ -35,23 +35,23 @@ export function ParticipantDetail() {
           >
             ✕
           </button>
-          
+
           {/* Avatar and name */}
           <div className="flex items-start gap-4 mb-4">
-            <div 
+            <div
               className={`
                 w-16 h-16 rounded-xl overflow-hidden border-2 shadow-lg
                 ${isCurrentUser ? 'border-space-orange shadow-glow-orange' : 'border-space-cream/30'}
               `}
             >
               {selectedParticipant.icon_url ? (
-                <img 
+                <img
                   src={selectedParticipant.icon_url}
                   alt={selectedParticipant.username}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div 
+                <div
                   className="w-full h-full flex items-center justify-center text-2xl font-bold text-space-void"
                   style={{ backgroundColor: levelColor }}
                 >
@@ -59,7 +59,7 @@ export function ParticipantDetail() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <h3 className="font-display text-lg font-semibold text-space-cream truncate">
                 {selectedParticipant.username}
@@ -76,12 +76,12 @@ export function ParticipantDetail() {
               )}
             </div>
           </div>
-          
+
           {/* Level badge */}
           <div className="mb-4">
-            <div 
+            <div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ 
+              style={{
                 backgroundColor: `${levelColor}20`,
                 color: levelColor,
               }}
@@ -91,28 +91,28 @@ export function ParticipantDetail() {
               <span className="text-sm font-medium">{levelName}</span>
             </div>
           </div>
-          
+
           {/* Progress bar */}
           <div className="mb-4">
             <div className="flex justify-between text-xs text-space-lavender/60 mb-1">
               <span>Journey Progress</span>
-              <span>{Math.min(level * 25, 100)}%</span>
+              <span>{selectedParticipant ? getCompletionPercentage(selectedParticipant) : 0}%</span>
             </div>
             <div className="progress-bar">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${Math.min(level * 25, 100)}%` }}
+                animate={{ width: `${selectedParticipant ? getCompletionPercentage(selectedParticipant) : 0}%` }}
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="progress-bar-fill"
               />
             </div>
           </div>
-          
+
           {/* Coordinates */}
           <div className="coord-badge">
             <span className="text-space-lavender/40">📍</span>
             <span>
-              {(selectedParticipant.x - 180).toFixed(1)}°, 
+              {(selectedParticipant.x - 180).toFixed(1)}°,
               {(selectedParticipant.y - 90).toFixed(1)}°
             </span>
           </div>
@@ -125,27 +125,29 @@ export function ParticipantDetail() {
 /**
  * Progress tracker showing all levels
  */
-export function ProgressTracker({ currentLevel = 0 }: { currentLevel?: number }) {
+export function ProgressTracker({ currentLevel = 0, completionStatus }: { currentLevel?: number, completionStatus?: boolean[] }) {
   const levels = [
     { id: 0, name: 'Identity', icon: '🧑‍🚀', description: 'Create your explorer avatar' },
     { id: 1, name: 'Signal', icon: '📡', description: 'Establish communication' },
     { id: 2, name: 'Navigate', icon: '🧭', description: 'Chart your course' },
     { id: 3, name: 'Journey', icon: '🚀', description: 'Begin the voyage' },
-    { id: 4, name: 'Home', icon: '🏠', description: 'Reach your destination' },
+    { id: 4, name: 'Challenge', icon: '⭐', description: 'Optional challenge' },
+    { id: 5, name: 'Home', icon: '🏠', description: 'Reach your destination' },
   ]
-  
+
   return (
     <div className="glass-panel p-4">
       <h3 className="font-display text-sm font-semibold text-space-lavender mb-3">
         Your Journey
       </h3>
-      
+
       <div className="space-y-2">
         {levels.map((level, index) => {
-          const isCompleted = currentLevel > level.id
-          const isCurrent = currentLevel === level.id
-          const isLocked = currentLevel < level.id
-          
+          // Check if this specific level is completed (supports non-sequential completion)
+          const isCompleted = completionStatus?.[level.id] ?? (currentLevel > level.id)
+          const isCurrent = !isCompleted && (completionStatus?.[level.id - 1] ?? currentLevel === level.id)
+          const isLocked = !isCompleted && !isCurrent
+
           return (
             <motion.div
               key={level.id}
@@ -159,12 +161,12 @@ export function ProgressTracker({ currentLevel = 0 }: { currentLevel?: number })
               `}
             >
               {/* Status indicator */}
-              <div 
+              <div
                 className={`
                   w-8 h-8 rounded-full flex items-center justify-center text-sm
-                  ${isCompleted 
-                    ? 'bg-space-mint text-space-void' 
-                    : isCurrent 
+                  ${isCompleted
+                    ? 'bg-space-mint text-space-void'
+                    : isCurrent
                       ? 'bg-space-orange text-space-void animate-pulse-soft'
                       : 'bg-space-void-lighter text-space-lavender/40'
                   }
@@ -172,7 +174,7 @@ export function ProgressTracker({ currentLevel = 0 }: { currentLevel?: number })
               >
                 {isCompleted ? '✓' : level.icon}
               </div>
-              
+
               {/* Level info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

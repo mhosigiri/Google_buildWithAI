@@ -8,7 +8,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMapStore } from '@/lib/store'
+import { useMapStore, getParticipantLevel, getLevelCompletionStatus } from '@/lib/store'
 import { fetchParticipantsClient, getEvent } from '@/lib/api'
 import type { Event, ParticipantOnMap } from '@/lib/api'
 
@@ -30,14 +30,14 @@ interface EventMapClientProps {
   initialParticipants: ParticipantOnMap[]
 }
 
-export function EventMapClient({ 
-  eventCode, 
-  initialEvent, 
-  initialParticipants 
+export function EventMapClient({
+  eventCode,
+  initialEvent,
+  initialParticipants
 }: EventMapClientProps) {
-  const { 
-    setEvent, 
-    setParticipants, 
+  const {
+    setEvent,
+    setParticipants,
     setIsLoading,
     isLoading,
     autoRotate,
@@ -46,16 +46,16 @@ export function EventMapClient({
     currentUserId,
     participants,
   } = useMapStore()
-  
+
   const [error, setError] = useState<string | null>(null)
   const [showControls, setShowControls] = useState(true)
-  
+
   // Initialize store with server data
   useEffect(() => {
     setEvent(initialEvent)
     setParticipants(initialParticipants)
     setIsLoading(false)
-    
+
     // Check for participant ID in URL or localStorage
     const urlParams = new URLSearchParams(window.location.search)
     const participantId = urlParams.get('me') || localStorage.getItem(`wbh-${eventCode}-id`)
@@ -63,7 +63,7 @@ export function EventMapClient({
       useMapStore.getState().setCurrentUserId(participantId)
     }
   }, [initialEvent, initialParticipants, setEvent, setParticipants, setIsLoading, eventCode])
-  
+
   // Poll for participant updates
   useEffect(() => {
     const pollInterval = setInterval(async () => {
@@ -74,10 +74,10 @@ export function EventMapClient({
         console.error('Failed to fetch participants:', err)
       }
     }, 10000) // Poll every 10 seconds
-    
+
     return () => clearInterval(pollInterval)
   }, [eventCode, setParticipants])
-  
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,25 +91,32 @@ export function EventMapClient({
         setShowControls(!showControls)
       }
     }
-    
+
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [autoRotate, setAutoRotate, showControls])
-  
+
   if (error) {
     return <ErrorScreen message={error} />
   }
-  
+
   // Find current user's participant data
   const currentUserParticipant = participants.find(p => p.participant_id === currentUserId)
-  // Derive level from location_confirmed for now
-  const currentUserLevel = currentUserParticipant?.location_confirmed ? 1 : 0
-  
+  // Get current user's level using helper (supports Firebase overrides)
+  const currentUserLevel = currentUserParticipant
+    ? getParticipantLevel(currentUserParticipant)
+    : 0
+
+  // Get detailed completion status (for non-sequential levels)
+  const currentUserCompletionStatus = currentUserParticipant
+    ? getLevelCompletionStatus(currentUserParticipant)
+    : undefined
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* 3D Scene */}
       <Scene3D />
-      
+
       {/* UI Overlay */}
       <AnimatePresence>
         {showControls && (
@@ -126,25 +133,28 @@ export function EventMapClient({
                 <MapTitle eventName={initialEvent.name} />
                 <EventStats />
               </div>
-              
+
               {/* Right: Participant list */}
               <div className="pointer-events-auto">
                 <ParticipantList />
               </div>
             </div>
-            
+
             {/* Bottom left: Progress tracker (if logged in) */}
             {currentUserParticipant && (
               <div className="fixed bottom-4 md:bottom-6 left-4 md:left-6 w-64 pointer-events-auto">
-                <ProgressTracker currentLevel={currentUserLevel} />
+                <ProgressTracker
+                  currentLevel={currentUserLevel}
+                  completionStatus={currentUserCompletionStatus}
+                />
               </div>
             )}
-            
+
             {/* Bottom right: Selected participant detail */}
             <div className="fixed bottom-4 md:bottom-6 right-4 md:right-6 pointer-events-auto">
               <ParticipantDetail />
             </div>
-            
+
             {/* Bottom center: Controls hint */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -162,28 +172,28 @@ export function EventMapClient({
                 <span className="text-space-lavender/60">[H] toggle UI</span>
               </div>
             </motion.div>
-            
+
             {/* Bottom center: Auto-rotate toggle + links */}
             <div className="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4 pointer-events-auto">
               <button
                 onClick={() => setAutoRotate(!autoRotate)}
                 className={`
                   px-3 py-1.5 rounded-full text-xs font-medium transition-colors
-                  ${autoRotate 
-                    ? 'bg-space-orange/20 text-space-orange' 
+                  ${autoRotate
+                    ? 'bg-space-orange/20 text-space-orange'
                     : 'bg-space-void-lighter/50 text-space-lavender/60'
                   }
                 `}
               >
                 {autoRotate ? '🌍 Rotating' : '🌍 Paused'}
               </button>
-              
+
               <MapFooterLinks />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Toggle UI hint when hidden */}
       {!showControls && (
         <motion.div

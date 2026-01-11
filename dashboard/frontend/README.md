@@ -15,6 +15,27 @@ Explorers can see themselves and others on an alien planet, track their progress
 - 📱 **Responsive Design** — Works on desktop and mobile
 - ⌨️ **Keyboard Shortcuts** — Quick controls for power users
 
+## 🎮 Level Logic & Overrides
+
+The application determines a user's level and progress using a **Hybrid System**:
+
+| Level | Name | Logic Source |
+| :--- | :--- | :--- |
+| **0** (Identity) | Stranded | **Hybrid:** Override OR Derived from `location_confirmed` |
+| **1** (Signal) | Survivor | **Hybrid:** Override OR Implied by Level 0 completion |
+| **2** (Navigate) | Explorer | **Override Only** (Firebase) |
+| **3** (Journey) | Navigator | **Override Only** (Firebase) |
+| **4** (Challenge) | Pathfinder | **Override Only** (Firebase) |
+| **5** (Home) | Homebound | **Override Only** (Firebase) |
+
+### Override Priority
+1. **Firebase Overrides Check First:** If a participant has explicit fields in Firebase (e.g., `level_2_complete: true` or `completion_percentage: 90`), these **always** take precedence.
+2. **Fallback to Derived Logic:** If no overrides are present, the system falls back to the original application logic:
+   - `location_confirmed: false` → **Level 0 (Stranded)**
+   - `location_confirmed: true` → **Level 1 (Survivor) Active**
+
+This allows seamless backward compatibility for existing users while enabling advanced progression control for new features.
+
 ## 🎨 Design System
 
 | Element | Color | Usage |

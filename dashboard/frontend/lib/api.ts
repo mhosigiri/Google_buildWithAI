@@ -48,6 +48,15 @@ export interface ParticipantOnMap {
   suit_color: string | null
   registered_at: string | null
   active: boolean
+
+  // Optional Firebase overrides (take precedence when present)
+  level_0_complete?: boolean
+  level_1_complete?: boolean
+  level_2_complete?: boolean
+  level_3_complete?: boolean
+  level_4_complete?: boolean
+  level_5_complete?: boolean
+  completion_percentage?: number  // 0-100, overrides derived percentage
 }
 
 // =============================================================================
@@ -61,11 +70,11 @@ export async function getEvent(eventCode: string): Promise<Event> {
   const res = await fetch(`${API_BASE_URL}/events/${eventCode}`, {
     next: { revalidate: 30 }, // Cache for 30 seconds
   })
-  
+
   if (!res.ok) {
     throw new Error(`Event not found: ${eventCode}`)
   }
-  
+
   return res.json()
 }
 
@@ -76,11 +85,11 @@ export async function getEventParticipants(eventCode: string): Promise<Participa
   const res = await fetch(`${API_BASE_URL}/events/${eventCode}/participants`, {
     next: { revalidate: 10 }, // Cache for 10 seconds
   })
-  
+
   if (!res.ok) {
     throw new Error(`Failed to fetch participants for event: ${eventCode}`)
   }
-  
+
   return res.json()
 }
 
@@ -91,11 +100,11 @@ export async function checkUsername(eventCode: string, username: string): Promis
   const res = await fetch(
     `${API_BASE_URL}/events/${eventCode}/check-username/${encodeURIComponent(username)}`
   )
-  
+
   if (!res.ok) {
     return false
   }
-  
+
   const data = await res.json()
   return data.available
 }
@@ -105,11 +114,11 @@ export async function checkUsername(eventCode: string, username: string): Promis
  */
 export async function getParticipant(participantId: string): Promise<Participant> {
   const res = await fetch(`${API_BASE_URL}/participants/${participantId}`)
-  
+
   if (!res.ok) {
     throw new Error(`Participant not found: ${participantId}`)
   }
-  
+
   return res.json()
 }
 
@@ -124,10 +133,10 @@ export async function fetchParticipantsClient(eventCode: string): Promise<Partic
   const res = await fetch(`${API_BASE_URL}/events/${eventCode}/participants`, {
     cache: 'no-store',
   })
-  
+
   if (!res.ok) {
     throw new Error('Failed to fetch participants')
   }
-  
+
   return res.json()
 }
