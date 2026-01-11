@@ -93,6 +93,7 @@ cp .env.template .env
 | `POST` | `/participants/{id}/avatar` | Upload avatar images |
 | `POST` | `/participants/{id}/evidence` | Upload crash site evidence |
 | `POST` | `/participants/register` | Complete registration |
+| `PATCH` | `/participants/{id}` | Update details (level overrides) |
 | `PATCH` | `/participants/{id}/location` | Confirm location (Level 1) |
 
 ### Admin Endpoints (Firebase Auth Protected)
@@ -224,8 +225,32 @@ gcloud run domain-mappings create \
     "suit_color": "deep blue with silver accents",
     "appearance": "short dark hair, glasses",
     "registered_at": "2025-01-15T10:30:00Z",
-    "active": true
+    "active": true,
+    "level_0_complete": true,
+    "level_1_complete": false,
+    "completion_percentage": 50
 }
+```
+
+### Participant Level Overrides
+
+The backend supports manual overrides for participant level progression. This is useful for testing or custom workshop flows.
+
+**Override Fields:**
+*   `level_X_complete` (bool): If present, overrides the native level completion logic.
+*   `completion_percentage` (int): If present, overrides the calculated journey progress (0-100).
+
+**How to Update:**
+Use the `PATCH` endpoint to set these fields.
+
+```bash
+# Example: Set Level 1 to complete and progress to 50%
+curl -X PATCH https://api.waybackhome.dev/participants/{participant_id} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "level_1_complete": true,
+    "completion_percentage": 50
+  }'
 ```
 
 ## 🔒 Security Model
