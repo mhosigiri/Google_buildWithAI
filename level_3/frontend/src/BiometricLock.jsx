@@ -22,7 +22,14 @@ export default function BiometricLock() {
     // ADK backend expects /ws/{user_id}/{session_id}
     // Generate random session ID on mount to ensure fresh session
     const sessionId = useRef(Math.random().toString(36).substring(7)).current;
-    const { status: socketStatus, lastMessage, connect, disconnect, startStream, stopStream } = useGeminiSocket(`ws://localhost:8080/ws/user1/${sessionId}`);
+
+    // Dynamic WebSocket URL handling for Cloud Shell / Localhost
+    // If protocol is https (Cloud Shell), use wss. If http (localhost), use ws.
+    // window.location.host includes the port if present.
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/user1/${sessionId}`;
+
+    const { status: socketStatus, lastMessage, connect, disconnect, startStream, stopStream } = useGeminiSocket(wsUrl);
 
     // Handle Game Start
     const startRound = () => {
@@ -87,8 +94,8 @@ export default function BiometricLock() {
 
     const handleInitiateOverride = async () => {
         try {
-            // Request Camera Permission immediately
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            // Request Camera and Microphone Permission immediately
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
             // If we get here, permission granted. 
             // Stop this temporary stream so startStream() can get a fresh one later (or we could pass it, but simpler to just release)

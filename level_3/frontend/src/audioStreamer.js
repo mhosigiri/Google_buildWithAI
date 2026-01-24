@@ -43,7 +43,7 @@ export class AudioStreamer {
         }
     }
 
-    playNext() {
+    async playNext() {
         if (this.isPlaying || this.audioQueue.length === 0) {
             // console.log(`[AudioStreamer] Skipping playNext (Playing: ${this.isPlaying}, Queue: ${this.audioQueue.length})`);
             return;
@@ -51,7 +51,11 @@ export class AudioStreamer {
 
         if (this.context.state === 'suspended') {
             console.warn('[AudioStreamer] Context is suspended! Attempting resume...');
-            this.context.resume();
+            try {
+                // Must be awaited or handled otherwise play starts on suspended context
+                await this.context.resume();
+                console.log('[AudioStreamer] Context resumed.');
+            } catch (e) { console.error("Failed to resume", e); }
         }
 
         try {

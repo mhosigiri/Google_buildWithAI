@@ -1,8 +1,11 @@
 import asyncio
 import json
 import logging
+import uvicorn
 import warnings
+import os
 from pathlib import Path
+
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -38,9 +41,9 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 # Suppress Pydantic serialization warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
-# Application name constant
+PORT = 8080
 APP_NAME = "alpha-drone"
-
+FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../frontend/dist"))
 # ========================================
 # Phase 1: Application Initialization (once at startup)
 # ========================================
@@ -58,7 +61,11 @@ app.add_middleware(
 )
 
 
-#REPLACE_RUNNER_CONFIG
+# Define your session service
+session_service = InMemorySessionService()
+
+# Define your runner
+runner = Runner(app_name=APP_NAME, agent=root_agent, session_service=session_service)
 
 # ========================================
 # WebSocket Endpoint
@@ -85,29 +92,22 @@ async def websocket_endpoint(
     await websocket.accept()
     logger.info(f"WebSocket connected: {user_id}/{session_id}")
 
-    # ========================================
-    # Phase 2: Session Initialization (once per streaming session)
-    # ========================================
-
-    # Automatically determine response modality based on model architecture
-    # Native audio models (containing "native-audio" in name)
-    # ONLY support AUDIO response modality.
-    # Half-cascade models support both TEXT and AUDIO,
-    # we default to TEXT for better performance.
-
-
-    #REPLACE-SESSION-INIT
-
+    #REPLACE_SESSION_INIT
     
-    # ========================================
-    # Phase 3: Active Session (concurrent bidirectional communication)
-    # ========================================
-
     #REPLACE_LIVE_REQUEST
 
     #REPLACE_SORT_RESPONSE
 
+
+# Serve Static Files (Fallback for SPA)
+# Mount static files if directory exists
+if os.path.isdir(FRONTEND_DIST):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="static")
+    print(f"Serving static files from: {FRONTEND_DIST}")
+else:
+    print(f"Warning: Frontend build not found at {FRONTEND_DIST}")
+    print("Please run 'npm run build' in the frontend directory.")
+
 if __name__ == "__main__":
-    import uvicorn
-    # Allow running this file directly for dev
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # Run uvicorn programmatically
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
