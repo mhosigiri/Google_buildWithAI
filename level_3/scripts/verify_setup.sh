@@ -113,8 +113,6 @@ fi
 echo -e "\n-------------------------------------------------------"
 if [ "$ALL_PASSED" = true ]; then
     echo -e "🎉 ${GREEN}${BOLD}SYSTEMS ONLINE. READY FOR MISSION.${NC}"
-    exit 0
 else
     echo -e "🛑 ${RED}${BOLD}SYSTEM CHECKS FAILED.${NC} Please resolve the issues above."
-    exit 1
 fi

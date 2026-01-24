@@ -1,35 +1,32 @@
 import asyncio
-import websockets
-import json
 import base64
-import time
+import json
+import os
+import uvicorn
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+app = FastAPI()
 
 PORT = 8080
 AUDIO_FILE = "mock/mock_audio.pcm"
+FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "../frontend/dist"))
 
-async def handler(websocket):
-    print("Client connected")
+# WebSocket Endpoint
+@app.websocket("/ws/user1/{session_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str):
+    await websocket.accept()
+    print(f"Client connected (Session: {session_id})")
     try:
-        # Wait for the first message (usually initial setup or "start")
-        # In a real scenario, we might wait for an "setup" message.
-        # But for this simple test, we can just respond.
-        
-        async for message in websocket:
-            msg_data = json.loads(message)
-            print(f"Received message type: {msg_data.get('type')}")
-            
-            # If we receive audio or image, we can mock a response.
-            # Let's just respond immediately with the audio file as "inlineData"
-            # simulating the AI speaking "This is mock".
-            
-            # Read the audio file
+        # Send initial audio greeting immediately
+        if os.path.exists(AUDIO_FILE):
+            print("Sending initial audio greeting...")
             with open(AUDIO_FILE, "rb") as f:
                 audio_content = f.read()
-                
-            # Base64 encode
+            
             b64_audio = base64.b64encode(audio_content).decode('utf-8')
             
-            # Construct Gemini-like response
             response = {
                 "serverContent": {
                     "modelTurn": {
@@ -44,17 +41,14 @@ async def handler(websocket):
                     }
                 }
             }
-            
-            # Simulate latency
-            print("Simulating 6s latency...")
-            await asyncio.sleep(6)
-            
-            await websocket.send(json.dumps(response))
+            await websocket.send_text(json.dumps(response))
             print("Sent mock audio response")
-            
-            # Also send a mock tool call "report_digit" just to see if frontend handles it
+
+            # Send mock tool call shortly after
+            print("Sending mock tool call in 2 seconds...")
+            await asyncio.sleep(2)
             tool_call_response = {
-                 "serverContent": {
+                    "serverContent": {
                     "modelTurn": {
                         "parts": [
                             {
@@ -67,26 +61,32 @@ async def handler(websocket):
                             }
                         ]
                     }
-                 }
+                    }
             }
-            await asyncio.sleep(1) # Wait a bit before sending tool call
-            await websocket.send(json.dumps(tool_call_response))
+            await websocket.send_text(json.dumps(tool_call_response))
             print("Sent mock tool call response")
-            
-            # Just do it once for the first message to avoid loop spam if client streams constantly
-            # But the client streams constantly (audio/video).
-            # So we should validly only reply occasionally.
-            # For this simple test, I'll sleep for a long time effectively stopping replies for this session
-            # or until new connection.
-            await asyncio.sleep(100) 
+        else:
+            print(f"Error: {AUDIO_FILE} not found")
 
-    except websockets.exceptions.ConnectionClosed:
+        while True:
+            # Continue to listen for messages to keep connection open and log them
+            message = await websocket.receive_text()
+            msg_data = json.loads(message)
+            print(f"Received message type: {msg_data.get('type')}")
+
+
+    except WebSocketDisconnect:
         print("Client disconnected")
+    except Exception as e:
+        print(f"Error: {e}")
 
-async def main():
-    async with websockets.serve(handler, "localhost", PORT):
-        print(f"Mock server started on ws://localhost:{PORT}")
-        await asyncio.get_running_loop().create_future()  # Run forever
+if os.path.isdir(FRONTEND_DIST):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="static")
+    print(f"Serving static files from: {FRONTEND_DIST}")
+else:
+    print(f"Warning: Frontend build not found at {FRONTEND_DIST}")
+    print("Please run 'npm run build' in the frontend directory.")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Run uvicorn programmatically
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
