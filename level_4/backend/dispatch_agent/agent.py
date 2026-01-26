@@ -17,13 +17,16 @@ from google.adk.agents.llm_agent import Agent
 from google.adk.tools.function_tool import FunctionTool
 from google.genai import Client
 from google.genai import types as genai_types
+import httpx
 import os
+
 
 
 load_dotenv()
 
 from .hazard_db import PART_HAZARDS
 
+insecure_client = httpx.AsyncClient(verify=False)
 ARCHITECT_URL = os.environ.get("ARCHITECT_URL","http://localhost:8081")
 
 #REPLACE-REMOTEA2AAGENT
@@ -42,7 +45,7 @@ def lookup_part_safety(part_name: str) -> str:
     print(f"[SAFETY] Hazard for {clean_name} is UNKNOWN")
     return "UNKNOWN"
 
-##REPLACE_MONITOR_HAZARD
+##REPLACE_MONITOR_HAZARD 
 
 MODEL_ID = os.getenv("MODEL_ID", "gemini-live-2.5-flash-preview-native-audio-09-2025")
 root_agent = Agent(

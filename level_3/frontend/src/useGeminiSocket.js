@@ -43,13 +43,7 @@ export function useGeminiSocket(url) {
 
     const startStream = useCallback(async (videoElement) => {
         try {
-            // 1. Start Video Stream
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            videoElement.srcObject = stream;
-            streamRef.current = stream;
-            await videoElement.play();
-
-//#CAPTURE AUDIO and VIDEO
+ //#CAPTURE AUDIO and VIDEO
         } catch (err) {
             console.error('Error accessing camera:', err);
         }
