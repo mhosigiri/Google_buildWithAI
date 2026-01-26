@@ -33,7 +33,6 @@ from google.adk.a2a.utils.agent_card_builder import AgentCardBuilder
 
 logger = logging.getLogger(__name__)
 
-#REPLACE-LOAD-AGENTCARD
 
 
 #REPLACE-CREATE-KAFKA-A2A-SERVER
