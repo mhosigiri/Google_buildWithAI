@@ -54,4 +54,5 @@ def get_cors_origins() -> list[str]:
         "http://localhost:3000",  # Local development (React/Next.js)
         "http://localhost:5173",  # Vite dev server
         "http://localhost:8080",  # Local backend testing
+        "http://localhost:8000",  # Local backend testing
     ]
