@@ -18,6 +18,81 @@ export default function BiometricLock() {
     const [status, setStatus] = useState('IDLE'); // IDLE, SCANNING, SUCCESS, FAIL
     const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
 
+    // Effect to update participant status on success
+    useEffect(() => {
+        if (status === 'SUCCESS') {
+            const updateStatus = async () => {
+                try {
+                    // Use fetch instead of import to avoid build/runtime errors if file is missing
+                    console.log('[BiometricLock] Attempting to fetch config.json...');
+                    let config = null;
+                    try {
+                        const configResponse = await fetch('/config.json');
+                        if (configResponse.ok) {
+                            config = await configResponse.json();
+                        } else {
+                            console.log('[BiometricLock] config.json not found (status:', configResponse.status, ')');
+                        }
+                    } catch (e) {
+                        console.log('[BiometricLock] Error fetching config.json:', e);
+                    }
+
+                    if (config && config.participant_id && config.api_base) {
+                        console.log('[BiometricLock] found config.json:', config);
+
+                        const response = await fetch(`${config.api_base}/participants/${config.participant_id}`);
+                        if (!response.ok) {
+                            console.error('[BiometricLock] GET participant failed:', response.status);
+                            return;
+                        }
+
+                        const data = await response.json();
+                        console.log('[BiometricLock] GET participant success:', data);
+
+                        // Update level 4 to true
+                        const updatedData = { ...data, level_4_complete: true };
+
+                        // Calculate completion percentage
+                        let labsCompleted = 0;
+                        if (updatedData.level_1_complete) labsCompleted++;
+                        if (updatedData.level_2_complete) labsCompleted++;
+                        if (updatedData.level_3_complete) labsCompleted++;
+                        if (updatedData.level_4_complete) labsCompleted++;
+                        if (updatedData.level_5_complete) labsCompleted++;
+
+                        const completion_percentage = labsCompleted * 20;
+                        const patchPayload = {
+                            level_4_complete: true,
+                            completion_percentage: completion_percentage
+                        };
+
+                        console.log('[BiometricLock] PATCH payload:', patchPayload);
+
+                        const patchResponse = await fetch(`${config.api_base}/participants/${config.participant_id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(patchPayload),
+                        });
+
+                        if (patchResponse.ok) {
+                            console.log('[BiometricLock] PATCH success');
+                        } else {
+                            console.error('[BiometricLock] PATCH failed:', patchResponse.status);
+                        }
+                    } else {
+                        console.log('[BiometricLock] config.json missing required fields or not found');
+                    }
+                } catch (err) {
+                    // Config not found or API error, ignore as per instructions
+                    console.log('Optional config not found or update failed:', err);
+                }
+            };
+            updateStatus();
+        }
+    }, [status]);
+
     const videoRef = useRef(null);
     // ADK backend expects /ws/{user_id}/{session_id}
     // Generate random session ID on mount to ensure fresh session
