@@ -56,3 +56,9 @@ def get_cors_origins() -> list[str]:
         "http://localhost:8080",  # Local backend testing
         "http://localhost:8000",  # Local backend testing
     ]
+
+
+def get_cors_origin_regex() -> str:
+    """Get allowed CORS origin regex for dynamic environments like Cloud Shell."""
+    # Matches any subdomain of cloudshell.dev
+    return r"https://.*\.cloudshell\.dev"

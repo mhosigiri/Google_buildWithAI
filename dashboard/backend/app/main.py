@@ -8,7 +8,7 @@ Handles event management, participant registration, and avatar storage.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .config import get_cors_origins
+from .config import get_cors_origins, get_cors_origin_regex
 from .routes import health, events, participants, admin
 
 
@@ -30,6 +30,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_origins(),
+    allow_origin_regex=get_cors_origin_regex(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
