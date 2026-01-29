@@ -358,33 +358,7 @@ Analyze the query:"""
         
         results = []
         
-        # This is your working query from the successful run!
-        sql = """
-            WITH query_embedding AS (
-                SELECT embeddings.values AS val
-                FROM ML.PREDICT(
-                    MODEL TextEmbeddings,
-                    (SELECT @query AS content)
-                )
-            )
-            SELECT
-                s.survivor_id,
-                s.name AS survivor_name,
-                s.biome,
-                sk.skill_id,
-                sk.name AS skill_name,
-                sk.category,
-                COSINE_DISTANCE(
-                    sk.skill_embedding, 
-                    (SELECT val FROM query_embedding)
-                ) AS distance
-            FROM Survivors s
-            JOIN SurvivorHasSkill shs ON s.survivor_id = shs.survivor_id
-            JOIN Skills sk ON shs.skill_id = sk.skill_id
-            WHERE sk.skill_embedding IS NOT NULL
-            ORDER BY distance ASC
-            LIMIT @limit
-        """
+       # TODO: REPLACE_SQL
         
         def run_query(transaction):
             rows = transaction.execute_sql(
