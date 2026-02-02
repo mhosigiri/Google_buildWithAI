@@ -56,11 +56,21 @@ export function EventMapClient({
     setParticipants(initialParticipants)
     setIsLoading(false)
 
-    // Check for participant ID in URL or localStorage
     const urlParams = new URLSearchParams(window.location.search)
-    const participantId = urlParams.get('me') || localStorage.getItem(`wbh-${eventCode}-id`)
-    if (participantId) {
-      useMapStore.getState().setCurrentUserId(participantId)
+
+    // Check for "me" (current user identity)
+    const myId = urlParams.get('me') || localStorage.getItem(`wbh-${eventCode}-id`)
+    if (myId) {
+      useMapStore.getState().setCurrentUserId(myId)
+    }
+
+    // Check for "share" (deep link to specific participant)
+    const shareId = urlParams.get('share')
+    if (shareId) {
+      const target = initialParticipants.find(p => p.participant_id === shareId)
+      if (target) {
+        useMapStore.getState().setSelectedParticipant(target)
+      }
     }
   }, [initialEvent, initialParticipants, setEvent, setParticipants, setIsLoading, eventCode])
 
