@@ -36,12 +36,13 @@ if [ "$PROJECT_ID_SET" = false ]; then
 
     if [ -n "$ACTIVE_PROJECT_ID" ]; then
         echo "Detected currently active project: $ACTIVE_PROJECT_ID"
-        read -p "Should we use this project ID? [Y/n] " USE_ACTIVE
-        USE_ACTIVE=${USE_ACTIVE:-Y} # Default to Yes
-        
-        if [[ "$USE_ACTIVE" =~ ^[Yy]$ ]]; then
+        if gcloud projects describe "$ACTIVE_PROJECT_ID" --quiet >/dev/null 2>&1; then
+            echo "Verified '$ACTIVE_PROJECT_ID' access. Using it."
             FINAL_PROJECT_ID="$ACTIVE_PROJECT_ID"
             PROJECT_ID_SET=true
+        else
+            echo "Warning: Detected active project '$ACTIVE_PROJECT_ID' but cannot describe it."
+            echo "Proceeding to project selection..."
         fi
     fi
 fi
@@ -92,9 +93,20 @@ fi
 
 # Final setup with the selected ID
 echo -e "\n--- Finalizing Setup for: $FINAL_PROJECT_ID ---"
+
+# Save project ID first to ensure persistence
+if [ -n "$FINAL_PROJECT_ID" ]; then
+    echo "$FINAL_PROJECT_ID" > "$PROJECT_FILE"
+    if [ -f "$PROJECT_FILE" ]; then
+        echo "Project ID successfully saved to $PROJECT_FILE"
+    else
+        echo "Warning: Failed to confirm saving Project ID to $PROJECT_FILE"
+    fi
+else
+    handle_error "Project ID is empty. Cannot save."
+fi
+
 gcloud config set project "$FINAL_PROJECT_ID" || handle_error "Failed to set project."
-echo "$FINAL_PROJECT_ID" > "$PROJECT_FILE"
-echo "Project ID saved to $PROJECT_FILE"
 
 # --- Part 2: Install Dependencies and Run Billing Setup ---
 echo -e "\n--- Installing Python dependencies ---"
