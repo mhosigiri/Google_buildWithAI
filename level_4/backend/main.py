@@ -161,16 +161,11 @@ async def websocket_endpoint(
             live_request_queue=live_request_queue,
             run_config=run_config,
         ):
-            # Parse event for human-readable logging
-            event_type = "UNKNOWN"
-            details = ""
+            
+            
             #PROCESS_AGENT_RESPONSE
             
 
-            # Suppress raw event logging
-            event_json = event.model_dump_json(exclude_none=True, by_alias=True)
-            # logger.info(f"raw_event: {event_json[:200]}...") 
-            await websocket.send_text(event_json)
         logger.info("Gemini Live API connection closed.")
 
     # Run both tasks concurrently
