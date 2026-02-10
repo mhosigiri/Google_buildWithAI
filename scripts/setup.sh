@@ -151,6 +151,9 @@ echo -e "Using project: ${CYAN}${PROJECT_ID}${NC}"
 echo ""
 echo -e "${YELLOW}Checking billing configuration...${NC}"
 
+# Pre-install billing library (needed by billing-enablement.py)
+pip install --quiet --user google-cloud-billing 2>/dev/null || true
+
 # Run the billing enablement script
 if ! python3 "${SCRIPT_DIR}/billing-enablement.py"; then
     echo ""
