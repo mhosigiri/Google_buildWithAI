@@ -113,8 +113,7 @@ The key dependencies are:
 Run a quick verification to ensure everything is configured correctly:
 
 ```bash
-cd $HOME/way-back-home
-python scripts/verify_setup.py
+uv run python ../scripts/verify_setup.py
 ```
 
 You should see:
