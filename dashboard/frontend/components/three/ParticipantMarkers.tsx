@@ -34,10 +34,10 @@ export function ParticipantMarker({
   const isSelected = selectedParticipant?.participant_id === participant.participant_id
 
   // Calculate 3D position from 2D coordinates
-  // x is 0-360 (longitude), y is 0-180 (latitude) - normalize to 0-1
+  // Backend coords are 0-100 (MAP_WIDTH/MAP_HEIGHT) - normalize to 0-1
   const position = coordsToSphere(
-    participant.x / 360,
-    participant.y / 180,
+    participant.x / 100,
+    participant.y / 100,
     planetRadius * 1.02 // Slightly above surface
   )
 

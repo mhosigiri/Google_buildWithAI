@@ -16,14 +16,14 @@ interface PlanetProps {
   rotationSpeed?: number
 }
 
-export function Planet({ 
-  radius = 2, 
-  autoRotate = true, 
-  rotationSpeed = 0.05 
+export function Planet({
+  radius = 2,
+  autoRotate = true,
+  rotationSpeed = 0.05
 }: PlanetProps) {
   const planetRef = useRef<THREE.Group>(null)
   const atmosphereRef = useRef<THREE.Mesh>(null)
-  
+
   // Gentle rotation
   useFrame((state, delta) => {
     if (planetRef.current && autoRotate) {
@@ -33,14 +33,14 @@ export function Planet({
       atmosphereRef.current.rotation.y -= delta * 0.02
     }
   })
-  
+
   // Create gradient texture for the planet surface
   const surfaceTexture = useMemo(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 512
     canvas.height = 512
     const ctx = canvas.getContext('2d')!
-    
+
     // Create a warm, alien surface gradient
     const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256)
     gradient.addColorStop(0, '#E8A87C') // Terracotta center
@@ -48,10 +48,10 @@ export function Planet({
     gradient.addColorStop(0.5, '#DED4F0') // Lavender light
     gradient.addColorStop(0.7, '#C4B5E0') // Lavender
     gradient.addColorStop(1, '#A8E6CF') // Mint edges
-    
+
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, 512, 512)
-    
+
     // Add some subtle noise/texture
     for (let i = 0; i < 1000; i++) {
       const x = Math.random() * 512
@@ -62,12 +62,12 @@ export function Planet({
       ctx.arc(x, y, Math.random() * 3, 0, Math.PI * 2)
       ctx.fill()
     }
-    
+
     const texture = new THREE.CanvasTexture(canvas)
     texture.needsUpdate = true
     return texture
   }, [])
-  
+
   // Atmosphere gradient
   const atmosphereMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
@@ -97,25 +97,25 @@ export function Planet({
       transparent: true,
     })
   }, [])
-  
+
   return (
     <group ref={planetRef}>
       {/* Main planet sphere */}
       <mesh>
         <icosahedronGeometry args={[radius, 4]} />
-        <meshStandardMaterial 
+        <meshStandardMaterial
           map={surfaceTexture}
           roughness={0.8}
           metalness={0.1}
           flatShading
         />
       </mesh>
-      
+
       {/* Atmosphere glow */}
       <mesh ref={atmosphereRef} material={atmosphereMaterial}>
         <sphereGeometry args={[radius * 1.15, 32, 32]} />
       </mesh>
-      
+
       {/* Surface details - small bumps/hills */}
       <PlanetSurfaceDetails radius={radius} />
     </group>
@@ -128,36 +128,36 @@ export function Planet({
 function PlanetSurfaceDetails({ radius }: { radius: number }) {
   const details = useMemo(() => {
     const items: { position: [number, number, number]; scale: number; color: string }[] = []
-    
+
     // Generate random surface features
     for (let i = 0; i < 30; i++) {
       // Random point on sphere
       const theta = Math.random() * Math.PI * 2
       const phi = Math.acos(2 * Math.random() - 1)
-      
+
       const x = radius * Math.sin(phi) * Math.cos(theta)
       const y = radius * Math.sin(phi) * Math.sin(theta)
       const z = radius * Math.cos(phi)
-      
+
       const colors = ['#A8E6CF', '#C4B5E0', '#E8A87C', '#F8B4B4']
-      
+
       items.push({
         position: [x, y, z],
         scale: 0.05 + Math.random() * 0.1,
         color: colors[Math.floor(Math.random() * colors.length)],
       })
     }
-    
+
     return items
   }, [radius])
-  
+
   return (
     <group>
       {details.map((detail, i) => (
         <mesh key={i} position={detail.position}>
           <sphereGeometry args={[detail.scale, 8, 8]} />
-          <meshStandardMaterial 
-            color={detail.color} 
+          <meshStandardMaterial
+            color={detail.color}
             roughness={0.9}
             flatShading
           />
@@ -172,7 +172,7 @@ function PlanetSurfaceDetails({ radius }: { radius: number }) {
  */
 export function ConeTrees({ planetRadius = 2, count = 20 }: { planetRadius?: number; count?: number }) {
   const treesRef = useRef<THREE.Group>(null)
-  
+
   // Gentle sway animation
   useFrame((state) => {
     if (treesRef.current) {
@@ -184,29 +184,29 @@ export function ConeTrees({ planetRadius = 2, count = 20 }: { planetRadius?: num
       })
     }
   })
-  
+
   const trees = useMemo(() => {
     const items: { position: THREE.Vector3; scale: number }[] = []
-    
+
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2
       const phi = Math.acos(2 * Math.random() - 1)
-      
+
       // Position on planet surface
       const r = planetRadius * 1.0
       const x = r * Math.sin(phi) * Math.cos(theta)
       const y = r * Math.sin(phi) * Math.sin(theta)
       const z = r * Math.cos(phi)
-      
+
       items.push({
         position: new THREE.Vector3(x, y, z),
         scale: 0.08 + Math.random() * 0.12,
       })
     }
-    
+
     return items
   }, [planetRadius, count])
-  
+
   return (
     <group ref={treesRef}>
       {trees.map((tree, i) => {
@@ -216,14 +216,14 @@ export function ConeTrees({ planetRadius = 2, count = 20 }: { planetRadius?: num
         const direction = tree.position.clone().normalize()
         const quaternion = new THREE.Quaternion()
         quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction)
-        
+
         return (
           <group key={i} position={tree.position} quaternion={quaternion}>
             {/* Tree cone - now pointing outward from planet */}
-            <mesh position={[0, tree.scale * 1.2, 0]}>
-              <coneGeometry args={[tree.scale * 0.5, tree.scale * 2, 6]} />
-              <meshStandardMaterial 
-                color={i % 3 === 0 ? '#7DD3B0' : '#A8E6CF'} 
+            <mesh position={[0, tree.scale * 0.5, 0]}>
+              <coneGeometry args={[tree.scale * 0.4, tree.scale * 1.0, 6]} />
+              <meshStandardMaterial
+                color={i % 3 === 0 ? '#7DD3B0' : '#A8E6CF'}
                 roughness={0.8}
                 flatShading
               />
