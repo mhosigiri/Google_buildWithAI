@@ -82,31 +82,6 @@ gcloud auth list
 
 You should see your account listed as `(ACTIVE)`.
 
-### Configure Your Project
-
-Set your Google Cloud project. Replace `YOUR_PROJECT_ID` with your actual project ID (visible in the Cloud Console project selector):
-
-```bash
-gcloud config set project YOUR_PROJECT_ID
-```
-
-Verify the project is set correctly:
-
-```bash
-export PROJECT_ID=$(gcloud config get-value project)
-echo "Using project: $PROJECT_ID"
-```
-
-You should see your project ID printed (not `(unset)`). If you see `(unset)`, re-run the `gcloud config set project` command above.
-
-### Enable Required APIs
-
-Enable the Vertex AI API for image generation:
-
-```bash
-gcloud services enable aiplatform.googleapis.com
-```
-
 ### Clone the Repository
 
 Clone the Way Back Home repository and navigate to the project:
@@ -145,8 +120,7 @@ python scripts/verify_setup.py
 You should see:
 
 ```
-✓ Google Cloud project configured: your-project-id
-✓ Vertex AI API enabled
+✓ Authenticated as: your-email@google.com
 ✓ Python environment ready (uv)
 ✓ Ready to proceed!
 ```
@@ -156,8 +130,7 @@ You should see:
 
 If verification fails:
 <ul>
-<li><strong>Project not configured:</strong> Run <code>gcloud config set project YOUR_PROJECT_ID</code></li>
-<li><strong>API not enabled:</strong> Run <code>gcloud services enable aiplatform.googleapis.com</code></li>
+<li><strong>Not authenticated:</strong> Run <code>gcloud auth login</code></li>
 <li><strong>Missing dependencies:</strong> Re-run <code>uv sync</code> from the <code>level_0</code> directory</li>
 </ul>
 </aside>
@@ -165,13 +138,12 @@ If verification fails:
 ### What You Just Completed
 
 ✓ Opened Cloud Shell  
-✓ Configured your Google Cloud project  
-✓ Enabled Vertex AI APIs  
+✓ Authenticated with Google Cloud  
 ✓ Cloned the codelab repository  
 ✓ Installed Python dependencies with `uv`  
 ✓ Verified your setup  
 
-**Next:** Connect to Mission Control and claim your explorer name.
+**Next:** Connect to Mission Control — the setup script will configure your Google Cloud project and APIs automatically.
 
 ## Connect to Mission Control
 Duration: 2 mins
