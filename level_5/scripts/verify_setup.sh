@@ -82,7 +82,6 @@ DEPS=(
     "websockets:websockets"
     "python-dotenv:dotenv"
     "google-adk:google.adk"
-    "a2a-sdk:a2a"
     "aiokafka:aiokafka"
 )
 
@@ -102,7 +101,6 @@ if [ ${#MISSING_DEPS[@]} -eq 0 ]; then
     echo -e "✅ Python Environment: ${GREEN}Ready${NC}"
 else
     echo -e "❌ Python Dependencies: ${RED}Missing ${MISSING_DEPS[*]}${NC}"
-    echo "   Run: pip install -r requirements.txt"
     ALL_PASSED=false
 fi
 
