@@ -48,9 +48,9 @@ export function ParticipantMarker({
   // Animate the marker
   useFrame((state) => {
     if (meshRef.current) {
-      // Gentle bobbing
+      // Gentle bobbing (local offset from group position)
       const bob = Math.sin(state.clock.elapsedTime * 2 + participant.participant_id.charCodeAt(0)) * 0.02
-      meshRef.current.position.y = position[1] + bob
+      meshRef.current.position.y = bob
 
       // Scale on hover
       const targetScale = hovered || isSelected ? 1.5 : 1
