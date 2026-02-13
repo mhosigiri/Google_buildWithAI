@@ -64,38 +64,13 @@ echo -e "${GREEN}✓ Authenticated${NC}"
 PROJECT_FILE="$HOME/project_id.txt"
 PROJECT_ID=""
 
-# 1a. Check for existing project_id.txt (from a previous level)
-if [ -s "$PROJECT_FILE" ]; then
-    EXISTING_PROJECT_ID=$(cat "$PROJECT_FILE" | tr -d '[:space:]')
-    echo -e "Found previously saved project ID: ${CYAN}${EXISTING_PROJECT_ID}${NC}"
-    if gcloud projects describe "$EXISTING_PROJECT_ID" --quiet >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Verified project access${NC}"
-        PROJECT_ID="$EXISTING_PROJECT_ID"
-        gcloud config set project "$PROJECT_ID" --quiet 2>/dev/null
-    else
-        echo -e "${YELLOW}Saved project '$EXISTING_PROJECT_ID' is invalid or inaccessible. Ignoring.${NC}"
-        rm "$PROJECT_FILE"
-    fi
-fi
-
-# 1b. Check currently active gcloud project
-if [ -z "$PROJECT_ID" ]; then
-    ACTIVE_PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
-    if [ "$ACTIVE_PROJECT_ID" = "(unset)" ]; then ACTIVE_PROJECT_ID=""; fi
-
-    if [ -n "$ACTIVE_PROJECT_ID" ]; then
-        echo -e "Detected active project: ${CYAN}${ACTIVE_PROJECT_ID}${NC}"
-        if gcloud projects describe "$ACTIVE_PROJECT_ID" --quiet >/dev/null 2>&1; then
-            echo -e "${GREEN}✓ Verified project access${NC}"
-            PROJECT_ID="$ACTIVE_PROJECT_ID"
-        fi
-    fi
-fi
+# NEW START: Delete existing project file to ensure a clean state
+rm -f "$PROJECT_FILE"
 
 # 1c. Interactive project creation if no project found
 if [ -z "$PROJECT_ID" ]; then
     echo ""
-    echo -e "${YELLOW}No Google Cloud project detected. Let's set one up.${NC}"
+    echo -e "${YELLOW}Let's set a new project.${NC}"
 
     CODELAB_PROJECT_PREFIX="waybackhome"
     PREFIX_LEN=${#CODELAB_PROJECT_PREFIX}

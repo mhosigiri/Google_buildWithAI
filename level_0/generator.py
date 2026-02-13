@@ -69,7 +69,7 @@ def generate_explorer_avatar() -> dict:
     #
     # Hint: You need to use types.GenerateContentConfig
     # =========================================================================
-    chat = None  # Replace this line
+    chat = None # Replace this line
 
     # =========================================================================
     # MODULE_5_STEP_2_GENERATE_PORTRAIT
@@ -90,7 +90,7 @@ def generate_explorer_avatar() -> dict:
     #
     # 4. Print progress messages for user feedback
     # =========================================================================
-    portrait_image = None  # Replace this section
+    portrait_image = None # Replace this section
 
     # =========================================================================
     # MODULE_5_STEP_3_GENERATE_ICON
@@ -109,7 +109,7 @@ def generate_explorer_avatar() -> dict:
     #
     # 4. Print progress messages for user feedback
     # =========================================================================
-    icon_image = None  # Replace this section
+    icon_image = None # Replace this section
 
     return {
         "portrait_path": "outputs/portrait.png",
