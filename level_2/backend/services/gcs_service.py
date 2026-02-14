@@ -60,6 +60,8 @@ class GCSService:
         blob_name = f"media/{media_type.value}/{survivor_folder}/{uuid.uuid4()}_{os.path.basename(file_path)}"
         
         # TODO: REPLACE_SAVE_TO_GCS
+        blob = self.bucket.blob(blob_name)
+        blob.upload_from_filename(file_path)
         
         gcs_uri = f"gs://{os.getenv('GCS_BUCKET_NAME')}/{blob_name}"
         logger.info(f"Uploaded {media_type.value} to {gcs_uri}")
